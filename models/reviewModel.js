@@ -35,14 +35,23 @@ const reviewSchema = new mongoose.Schema(
 );
 
 //Query middlewares
+// reviewSchema.pre(/^find/, function(next) {
+//   this.populate({
+//     path: 'tour',
+//     select: 'name'
+//   });
+//   next();
+// });
+
 reviewSchema.pre(/^find/, function(next) {
-  this.populate({
-    path: 'tour',
-    select: 'name'
-  });
-  next();
-});
-reviewSchema.pre(/^find/, function(next) {
+  // this.populate({
+  //   path: 'tour',
+  //   select: 'name'
+  // }).populate({
+  //   path: 'user',
+  //   select: 'name photo'
+  // });
+
   this.populate({
     path: 'user',
     select: 'name photo'
@@ -53,3 +62,7 @@ reviewSchema.pre(/^find/, function(next) {
 const Review = mongoose.model('Review', reviewSchema);
 
 module.exports = Review;
+
+// Post/tour/qwewqewq21321ewqewqe/reviews
+// Get/tour/aedsqe123123/reviews
+// GET/tour/reviews/12314asdad
