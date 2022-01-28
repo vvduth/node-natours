@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const morgan = require('morgan');
 const { default: helmet } = require('helmet');
@@ -10,8 +11,11 @@ const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
+const viewRouter = require('./routes/viewRoutes');
 
 const app = express();
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'));
 
 // 1) MIDDLEWARES
 // sercurity http headers
@@ -52,7 +56,8 @@ app.use(
   })
 );
 //Serving static files
-app.use(express.static(`${__dirname}/public`));
+//app.use(express.static(`${__dirname}/public`));
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
@@ -61,6 +66,7 @@ app.use((req, res, next) => {
 });
 
 // 3) ROUTES
+app.use('/', viewRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);
