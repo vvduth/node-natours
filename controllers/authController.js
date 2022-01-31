@@ -119,6 +119,8 @@ exports.protect = catchAsync(async (req, res, next) => {
 });
 
 // Only for rendered pages, no errors!
+
+// Only for rendered pages, no errors!
 exports.isLoggedIn = async (req, res, next) => {
   if (req.cookies.jwt) {
     try {
@@ -135,13 +137,14 @@ exports.isLoggedIn = async (req, res, next) => {
       }
 
       // 3) Check if user changed password after the token was issued
-      if (currentUser.changedPasswordAfter(decoded.iat)) {
-        return next();
-      }
+      // if (currentUser.changedPasswordAfter(decoded.iat)) {
+      //   return next();
+      // }
 
       // THERE IS A LOGGED IN USER
       res.locals.user = currentUser;
-      return next();
+      console.log('USer', res.locals.user);
+      //return next();
     } catch (err) {
       return next();
     }
