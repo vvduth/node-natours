@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const cors = require('cors');
 
 process.on('uncaughtException', err => {
   console.log('UNCAUGHT EXCEPTION! 💥 Shutting down...');
@@ -23,13 +22,6 @@ mongoose
     useFindAndModify: false
   })
   .then(() => console.log('DB connection successful!'));
-
-app.use(cors());
-
-app.use((req, res, next) => {
-  res.header('Cross-Origin-Resource-Policy', 'cross-origin');
-  next();
-});
 
 const port = process.env.PORT || 3000;
 const server = app.listen(port, () => {

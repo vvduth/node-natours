@@ -1,7 +1,7 @@
 const path = require('path');
 const express = require('express');
 const morgan = require('morgan');
-const { default: helmet } = require('helmet');
+const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
@@ -14,43 +14,18 @@ const reviewRouter = require('./routes/reviewRoutes');
 const viewRouter = require('./routes/viewRoutes');
 
 const app = express();
+app.use((req, res, next) => {
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+
+  next();
+});
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
 
 // 1) MIDDLEWARES
 // sercurity http headers
-app.use(helmet());
 
-const scriptSrcUrls = [
-  'https://api.tiles.mapbox.com/',
-  'https://api.mapbox.com/'
-];
-const styleSrcUrls = [
-  'https://api.mapbox.com/',
-  'https://api.tiles.mapbox.com/',
-  'https://fonts.googleapis.com/'
-];
-const connectSrcUrls = [
-  'https://api.mapbox.com/',
-  'https://a.tiles.mapbox.com/',
-  'https://b.tiles.mapbox.com/',
-  'https://events.mapbox.com/'
-];
-const fontSrcUrls = ['fonts.googleapis.com', 'fonts.gstatic.com'];
-app.use(
-  helmet.contentSecurityPolicy({
-    directives: {
-      defaultSrc: [],
-      connectSrc: ["'self'", ...connectSrcUrls],
-      scriptSrc: ["'self'", ...scriptSrcUrls],
-      styleSrc: ["'self'", "'unsafe-inline'", ...styleSrcUrls],
-      workerSrc: ["'self'", 'blob:'],
-      objectSrc: [],
-      imgSrc: ["'self'", 'blob:', 'data:'],
-      fontSrc: ["'self'", ...fontSrcUrls]
-    }
-  })
-);
+app.use(helmet());
 
 // Development logging
 if (process.env.NODE_ENV === 'development') {
