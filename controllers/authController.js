@@ -143,7 +143,7 @@ exports.isLoggedIn = async (req, res, next) => {
 
       // THERE IS A LOGGED IN USER
       res.locals.user = currentUser;
-      console.log('USer', res.locals.user);
+      console.log('User', res.locals.user);
       //return next();
     } catch (err) {
       return next();
@@ -189,6 +189,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
     //   subject: 'Your password reset token (valid for 10 min)',
     //   message
     // });
+    await new Email(user, resetURL).sendPasswordReset();
 
     res.status(200).json({
       status: 'success',
