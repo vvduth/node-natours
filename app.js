@@ -20,6 +20,7 @@ const bookingRouter = require('./routes/bookingRoutes');
 const bookingController = require('./controllers/bookingController');
 const viewRouter = require('./routes/viewRoutes');
 
+// Start express app
 const app = express();
 
 app.enable('trust proxy');
@@ -28,18 +29,18 @@ app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
 
 // 1) GLOBAL MIDDLEWARES
-// CORS
+// Implement CORS
 app.use(cors());
-// Serving static files
+// Access-Control-Allow-Origin *
+// api.natours.com, front-end natours.com
+// app.use(cors({
+//   origin: 'https://www.natours.com'
+// }))
 
 app.options('*', cors());
 // app.options('/api/v1/tours/:id', cors());
-app.post(
-  '/webhook-checkout',
-  bodyParser.raw({ type: 'application/json' }),
-  bookingController.webhookCheckout
-);
 
+// Serving static files
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Set security HTTP headers
@@ -58,6 +59,13 @@ const limiter = rateLimit({
 });
 app.use('/api', limiter);
 
+// Stripe webhook, BEFORE body-parser, because stripe needs the body as stream
+app.post(
+  '/webhook-checkout',
+  bodyParser.raw({ type: 'application/json' }),
+  bookingController.webhookCheckout
+);
+
 // Body parser, reading data from body into req.body
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
@@ -69,7 +77,7 @@ app.use(mongoSanitize());
 // Data sanitization against XSS
 app.use(xss());
 
-// Prevent parameter pollution 888
+// Prevent parameter pollution
 app.use(
   hpp({
     whitelist: [
@@ -82,12 +90,13 @@ app.use(
     ]
   })
 );
+
 app.use(compression());
 
 // Test middleware
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
-  //console.log(req.cookies);
+  // console.log(req.cookies);
   next();
 });
 
