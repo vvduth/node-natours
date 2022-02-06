@@ -35,7 +35,7 @@ app.options('*', cors());
 // app.options('/api/v1/tours/:id', cors());
 app.post(
   '/webhook-checkout',
-  express.raw({ type: 'application/json' }),
+  bddyParser.raw({ type: 'application/json' }),
   bookingController.webhookCheckout
 );
 
