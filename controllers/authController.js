@@ -12,16 +12,17 @@ const signToken = id => {
   });
 };
 
-const createSendToken = (user, statusCode, req, res) => {
+const createSendToken = (user, statusCode, res) => {
   const token = signToken(user._id);
-
-  res.cookie('jwt', token, {
+  const cookieOptions = {
     expires: new Date(
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
     ),
-    httpOnly: true,
-    secure: req.secure || req.headers['x-forwarded-proto'] === 'https'
-  });
+    httpOnly: true
+  };
+  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+
+  res.cookie('jwt', token, cookieOptions);
 
   // Remove password from output
   user.password = undefined;
@@ -34,18 +35,19 @@ const createSendToken = (user, statusCode, req, res) => {
     }
   });
 };
-//hey
+
 exports.signup = catchAsync(async (req, res, next) => {
   const newUser = await User.create({
     name: req.body.name,
     email: req.body.email,
     password: req.body.password,
-    passwordConfirm: req.body.passwordConfirm,
-    role: req.body.role
+    passwordConfirm: req.body.passwordConfirm
   });
+
   const url = `${req.protocol}://${req.get('host')}/me`;
   console.log(url);
   await new Email(newUser, url).sendWelcome();
+
   createSendToken(newUser, 201, res);
 });
 
@@ -107,12 +109,12 @@ exports.protect = catchAsync(async (req, res, next) => {
     );
   }
 
-  //4) Check if user changed password after the token was issued
-  if (await currentUser.changePasswordAfter(decoded.iat)) {
-    return next(
-      new AppError('User recently changed password! Please log in again.', 401)
-    );
-  }
+  // 4) Check if user changed password after the token was issued
+  // if (currentUser.changedPasswordAfter(decoded.iat)) {
+  //   return next(
+  //     new AppError('User recently changed password! Please log in again.', 401)
+  //   );
+  // }
 
   // GRANT ACCESS TO PROTECTED ROUTE
   req.user = currentUser;
@@ -136,15 +138,14 @@ exports.isLoggedIn = async (req, res, next) => {
         return next();
       }
 
-      // 3) Check if user changed password after the token was issued
+      // // 3) Check if user changed password after the token was issued
       // if (currentUser.changedPasswordAfter(decoded.iat)) {
       //   return next();
       // }
 
       // THERE IS A LOGGED IN USER
       res.locals.user = currentUser;
-      console.log('User', res.locals.user);
-      //return next();
+      return next();
     } catch (err) {
       return next();
     }
@@ -177,18 +178,10 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   await user.save({ validateBeforeSave: false });
 
   // 3) Send it to user's email
-  const resetURL = `${req.protocol}://${req.get(
-    'host'
-  )}/api/v1/users/resetPassword/${resetToken}`;
-
-  const message = `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to: ${resetURL}.\nIf you didn't forget your password, please ignore this email!`;
-
   try {
-    // await sendEmail({
-    //   email: user.email,
-    //   subject: 'Your password reset token (valid for 10 min)',
-    //   message
-    // });
+    const resetURL = `${req.protocol}://${req.get(
+      'host'
+    )}/api/v1/users/resetPassword/${resetToken}`;
     await new Email(user, resetURL).sendPasswordReset();
 
     res.status(200).json({
