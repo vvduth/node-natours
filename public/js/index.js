@@ -20,7 +20,16 @@ if (mapBox) {
   const locations = JSON.parse(mapBox.dataset.locations);
   displayMap(locations);
 }
-if (signupForm) alert('Sign up');
+if (signupForm) {
+  signupForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email2').value;
+    const password = document.getElementById('password2').value;
+    const passwordConfirm = document.getElementById('password2C').value;
+    signup(name, email,password,passwordConfirm);
+  })
+};
 if (loginForm)
   loginForm.addEventListener('submit', e => {
     e.preventDefault();
